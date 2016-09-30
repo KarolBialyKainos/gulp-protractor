@@ -9,11 +9,11 @@ var winExt = /^win/.test(process.platform)?".cmd":"";
 // optimization: cache for protractor binaries directory
 var protractorDir = null;
 
-function getProtractorDir() {
+function getProtractorDir(options) {
   if (protractorDir) {
     return protractorDir;
   }
-  var result = require.resolve("protractor");
+  var result = require.resolve(options.protractorPlugin);
   if (result) {
     // result is now something like
     // c:\\Source\\gulp-protractor\\node_modules\\protractor\\lib\\protractor.js
@@ -29,6 +29,7 @@ var protractor = function(options) {
 
   options = options || {};
   args = options.args || [];
+  options.protractorPlugin = options.protractorPlugin || 'protractor';
 
   return es.through(function(file) {
     files.push(file.path);
@@ -52,7 +53,7 @@ var protractor = function(options) {
       args.unshift(options.configFile);
     }
 
-    child = child_process.spawn(path.resolve(getProtractorDir() + '/protractor'+winExt), args, {
+    child = child_process.spawn(path.resolve(getProtractorDir(options) + '/' + options.protractorPlugin + winExt), args, {
       stdio: 'inherit',
       env: process.env
     }).on('exit', function(code) {
@@ -61,7 +62,7 @@ var protractor = function(options) {
       }
       if (stream) {
         if (code) {
-          stream.emit('error', new PluginError('gulp-protractor', 'protractor exited with code ' + code));
+          stream.emit('error', new PluginError('gulp-protractor', options.protractorPlugin + ' exited with code ' + code));
         }
         else {
           stream.emit('end');
@@ -82,7 +83,7 @@ var webdriver_update = function(opts, cb) {
       });
     }
   }
-  child_process.spawn(path.resolve(getProtractorDir() + '/webdriver-manager'+winExt), args, {
+  child_process.spawn(path.resolve(getProtractorDir(options) + '/webdriver-manager'+winExt), args, {
     stdio: 'inherit'
   }).once('close', callback);
 };
@@ -94,7 +95,7 @@ var webdriver_update_specific = function(opts) {
 webdriver_update.bind(null, ["ie", "chrome"])
 
 var webdriver_standalone = function(cb) {
-  var child = child_process.spawn(path.resolve(getProtractorDir() + '/webdriver-manager'+winExt), ['start'], {
+  var child = child_process.spawn(path.resolve(getProtractorDir(options) + '/webdriver-manager'+winExt), ['start'], {
     stdio: 'inherit'
   }).once('close', cb);
 };
