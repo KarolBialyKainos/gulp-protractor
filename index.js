@@ -29,7 +29,6 @@ var protractor = function(options) {
 
   options = options || {};
   args = options.args || [];
-  options.protractorPlugin = options.protractorPlugin || 'protractor';
 
   return es.through(function(file) {
     files.push(file.path);
